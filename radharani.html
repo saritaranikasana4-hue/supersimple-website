@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Radha Rani Collection</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body {
+  font-family: Arial;
+  margin:0;
+  background:#f5f5f5;
+}
+
+header {
+  background:#e91e63;
+  color:white;
+  text-align:center;
+  padding:15px;
+}
+
+.container {
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+}
+
+.card {
+  background:white;
+  width:280px;
+  margin:10px;
+  border-radius:10px;
+  box-shadow:0 0 10px gray;
+  overflow:hidden;
+}
+
+.card img {
+  width:100%;
+  height:250px;
+  object-fit:cover;
+}
+
+button {
+  margin:10px;
+  padding:10px;
+  width:90%;
+  background:#e91e63;
+  color:white;
+  border:none;
+}
+
+#cart {
+  position:fixed;
+  right:0;
+  top:0;
+  background:white;
+  width:250px;
+  height:100%;
+  box-shadow:-2px 0 10px gray;
+  padding:10px;
+  overflow:auto;
+}
+
+#adminPanel {
+  display:none;
+  text-align:center;
+  padding:10px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>Radha Rani Collection</h1>
+<p>Kurti, Saree, Ladies Wear & Children Wear</p>
+</header>
+
+<!-- SELL BUTTON -->
+<div style="text-align:center;">
+<button onclick="showAdmin()">➕ Sell / Add Product</button>
+</div>
+
+<!-- ADMIN PANEL -->
+<div id="adminPanel">
+<h3>Add Product</h3>
+
+<input type="text" id="pname" placeholder="Product Name"><br><br>
+<input type="number" id="pprice" placeholder="Price"><br><br>
+<input type="file" id="pimg"><br><br>
+
+<button onclick="addProduct()">Save Product</button>
+</div>
+
+<!-- PRODUCTS -->
+<div class="container"></div>
+
+<!-- CART -->
+<div id="cart">
+<h3>Cart</h3>
+<ul id="cartItems"></ul>
+<p><b>Total: ₹<span id="total">0</span></b></p>
+<button onclick="checkout()">Order on WhatsApp</button>
+</div>
+
+<script>
+let products = JSON.parse(localStorage.getItem("products")) || [];
+let cart = [];
+let total = 0;
+
+// SHOW ADMIN
+function showAdmin(){
+  let pass = prompt("Enter Admin Password");
+  if(pass === "1234"){
+    document.getElementById("adminPanel").style.display = "block";
+  } else {
+    alert("Wrong Password");
+  }
+}
+
+// ADD PRODUCT
+function addProduct(){
+  let name = document.getElementById("pname").value;
+  let price = parseInt(document.getElementById("pprice").value);
+  let file = document.getElementById("pimg").files[0];
+
+  if(!name || !price || !file){
+    alert("Fill all details");
+    return;
+  }
+
+  let reader = new FileReader();
+
+  reader.onload = function(e){
+    let product = {
+      name: name,
+      price: price,
+      img: e.target.result
+    };
+
+    products.push(product);
+    localStorage.setItem("products", JSON.stringify(products));
+    displayProducts();
+  }
+
+  reader.readAsDataURL(file);
+}
+
+// DISPLAY PRODUCTS
+function displayProducts(){
+  let container = document.querySelector(".container");
+  container.innerHTML = "";
+
+  products.forEach((p)=>{
+    container.innerHTML += `
+    <div class="card">
+      <img src="${p.img}">
+      <h3>${p.name}</h3>
+      <p>₹${p.price}</p>
+
+      <input type="number" id="qty_${p.name}" value="1" min="1" style="width:50px">
+
+      <button onclick="addToCart('${p.name}',${p.price})">Add to Cart</button>
+    </div>`;
+  });
+}
+
+// ADD TO CART
+function addToCart(name, price){
+  let qty = parseInt(document.getElementById("qty_"+name).value) || 1;
+  let itemTotal = price * qty;
+
+  cart.push(name + " x" + qty + " = ₹" + itemTotal);
+  total += itemTotal;
+
+  document.getElementById("cartItems").innerHTML += "<li>" + name + " x" + qty + "</li>";
+  document.getElementById("total").innerText = total;
+}
+
+// CHECKOUT
+function checkout(){
+  let message = "Order Details:\n" + cart.join("\n") + "\nTotal: ₹" + total;
+  let url = "https://wa.me/919760883324?text=" + encodeURIComponent(message);
+  window.open(url);
+}
+
+window.onload = displayProducts;
+</script>
+
+</body>
+</html>
